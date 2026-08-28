@@ -36,7 +36,7 @@ class TestThermocyclerWorkflow:
         assert temp["unit"] == "celsius"
         assert 15.0 < temp["value"] < 30.0
 
-        thermocycler.write("set_temperature", 95.0)
+        thermocycler.write("temperature_setpoint", 95.0)
         target = thermocycler.read("target")
         assert target["value"] == 95.0
 
@@ -46,24 +46,24 @@ class TestThermocyclerWorkflow:
         m = thermocycler.get_manifest()
         assert m["type"] == "thermocycler"
         assert "block_temperature" in m["readable"]
-        assert "set_temperature" in m["writable"]
+        assert "temperature_setpoint" in m["writable"]
         assert "hard_limits" in m["safety"]
 
     def test_safety_blocks_extreme_temp(self, thermocycler):
         from khp.errors import SafetyBlockedError
         with pytest.raises(SafetyBlockedError):
-            thermocycler.write("set_temperature", 200.0)
+            thermocycler.write("temperature_setpoint", 200.0)
 
 
 class TestLiquidHandlerWorkflow:
     @pytest.mark.asyncio
-    async def test_aspirate_dispense(self, liquid_handler):
+    async def test_pickup_and_aspirate(self, liquid_handler):
         await liquid_handler.connect()
 
-        result = await liquid_handler.execute("aspirate", {"volume_ul": 100.0})
+        result = await liquid_handler.execute("pick_up_tips", {})
         assert result["status"] == "completed"
 
-        result = await liquid_handler.execute("dispense", {"volume_ul": 50.0})
+        result = await liquid_handler.execute("aspirate", {"volume_ul": 100.0})
         assert result["status"] == "completed"
 
         await liquid_handler.disconnect()
@@ -76,13 +76,13 @@ class TestLiquidHandlerWorkflow:
 
 class TestRoboticArmWorkflow:
     @pytest.mark.asyncio
-    async def test_move_and_grip(self, robotic_arm):
+    async def test_move_and_read_position(self, robotic_arm):
         await robotic_arm.connect()
 
-        result = await robotic_arm.execute("move_to", {"x": 100.0, "y": 50.0, "z": 30.0})
+        result = await robotic_arm.execute("move_to_position", {"x": 100.0, "y": 50.0, "z": 30.0})
         assert result["status"] == "completed"
 
-        pos = robotic_arm.read("position")
+        pos = robotic_arm.read("end_effector_position")
         assert pos["value"]["x"] == 100.0
 
         await robotic_arm.disconnect()

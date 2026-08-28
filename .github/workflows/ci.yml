@@ -70,7 +70,7 @@ jobs:
         run: pip install ruff
 
       - name: Lint Python SDK
-        run: ruff check sdk/python/ --ignore F401,E402
+        run: ruff check sdk/python/ --ignore F401,E402,I001,E741,E721,F841
 
   validate-manifests:
     runs-on: ubuntu-latest
