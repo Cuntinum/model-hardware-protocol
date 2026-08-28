@@ -1,0 +1,61 @@
+"""KHP Python SDK — Install with: pip install khp"""
+
+from setuptools import setup, find_packages
+
+setup(
+    name="khp",
+    version="0.1.0",
+    description="Model Hardware Protocol — AI agents controlling physical devices",
+    long_description=open("../../README.md").read(),
+    long_description_content_type="text/markdown",
+    author="Cuntinum",
+    author_email="dev@cuntinum.com",
+    url="https://github.com/Cuntinum/model-hardware-protocol",
+    packages=find_packages(),
+    python_requires=">=3.9",
+    install_requires=[],
+    extras_require={
+        "serial": ["pyserial>=3.5"],
+        "gpio": ["RPi.GPIO>=0.7", "smbus2>=0.4", "spidev>=3.6"],
+        "camera": ["opencv-python>=4.8"],
+        "mqtt": ["paho-mqtt>=1.6"],
+        "modbus": ["pymodbus>=3.5"],
+        "visa": ["pyvisa>=1.13", "pyvisa-py>=0.7"],
+        "rest": ["httpx>=0.25", "requests>=2.31"],
+        "mcp": ["mcp>=0.1"],
+        "cli": ["click>=8.1", "rich>=13.0"],
+        "discovery": ["zeroconf>=0.80"],
+        "all": [
+            "pyserial>=3.5",
+            "opencv-python>=4.8",
+            "paho-mqtt>=1.6",
+            "pymodbus>=3.5",
+            "pyvisa>=1.13",
+            "pyvisa-py>=0.7",
+            "httpx>=0.25",
+            "requests>=2.31",
+            "click>=8.1",
+            "rich>=13.0",
+            "zeroconf>=0.80",
+        ],
+    },
+    entry_points={
+        "console_scripts": [
+            "khp=cli.__main__:main",
+        ],
+    },
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering",
+        "Topic :: System :: Hardware",
+    ],
+    license="Apache-2.0",
+)
