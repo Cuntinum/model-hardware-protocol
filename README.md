@@ -12,25 +12,25 @@
   </p>
 </p>
 
----
+<br>
 
-**Model Hardware Protocol (MHP)** is a production-grade, open-source specification that enables any AI model — Claude, GPT, Gemini, Llama, or your own — to discover, communicate with, and orchestrate physical hardware through a universal driver interface.
+**Model Hardware Protocol (MHP)** is a production grade, open source specification that enables any AI model (Claude, GPT, Gemini, Llama, or your own) to discover, communicate with, and orchestrate physical hardware through a universal driver interface.
 
 One protocol. Any model. Any device. Safe by default.
 
 ```
-AI Agent  ──►  MHP Driver  ──►  Physical Device
+AI Agent  ►►►  MHP Driver  ►►►  Physical Device
    │              │                    │
    │         Safety Envelope           │
    │         (hard limits,             │
    │          confirmations)           │
    │              │                    │
-   └──── State Bus (shared memory) ───┘
+   └══════ State Bus (shared memory) ══┘
 ```
 
-> **Why this exists:** AI agents are moving from chatbots to physical systems — labs, factories, homes, vehicles. There is no standard way for a model to safely operate hardware. MHP fills that gap with a simple, safe, model-agnostic protocol backed by real driver implementations.
+> **Why this exists:** AI agents are moving from chatbots to physical systems: labs, factories, homes, vehicles. There is no standard way for a model to safely operate hardware. MHP fills that gap with a simple, safe, model agnostic protocol backed by real driver implementations.
 
----
+<br>
 
 ## Table of Contents
 
@@ -50,24 +50,24 @@ AI Agent  ──►  MHP Driver  ──►  Physical Device
 - [Contributing](#contributing)
 - [License](#license)
 
----
+<br>
 
 ## Features
 
 | Category | Capability |
 |----------|-----------|
-| **Universal** | Model-agnostic — works with any LLM, agent framework, or automation system |
-| **Safe** | Three-layer safety: hard limits (blocked), soft limits (clamped), human gates (confirmed) |
-| **Simple** | Four primitives: `READ`, `WRITE`, `EXECUTE`, `DISCOVER` — covers 95% of hardware interactions |
-| **MCP-Native** | First-class [Model Context Protocol](https://modelcontextprotocol.io) integration — plug into Claude, Cursor, or any MCP client |
-| **Multi-Language** | Python SDK + TypeScript SDK, drivers in any language |
-| **Production-Ready** | Audit logging, emergency stop, precondition checks, job tracking, connection lifecycle |
-| **Discoverable** | Devices self-announce via mDNS, central registry, or manual registration |
-| **Composable** | State Bus enables inter-device coordination with typed slots, transforms, and pub/sub events |
+| **Universal** | Model agnostic: works with any LLM, agent framework, or automation system |
+| **Safe** | Three layer safety: hard limits (blocked), soft limits (clamped), human gates (confirmed) |
+| **Simple** | Four primitives: `READ`, `WRITE`, `EXECUTE`, `DISCOVER` covering 95% of hardware interactions |
+| **MCP Native** | First class [Model Context Protocol](https://modelcontextprotocol.io) integration: plug into Claude, Cursor, or any MCP client |
+| **Multi Language** | Python SDK + TypeScript SDK, drivers in any language |
+| **Production Ready** | Audit logging, emergency stop, precondition checks, job tracking, connection lifecycle |
+| **Discoverable** | Devices self announce via mDNS, central registry, or manual registration |
+| **Composable** | State Bus enables inter device coordination with typed slots, transforms, and pub/sub events |
 | **Extensible** | 10 reference drivers ship out of the box; community drivers slot in with zero framework code |
-| **Open** | Apache 2.0 — use commercially, fork freely, contribute back |
+| **Open** | Apache 2.0: use commercially, fork freely, contribute back |
 
----
+<br>
 
 ## Quick Start
 
@@ -93,12 +93,12 @@ class TemperatureSensor(Driver):
     def temperature(self) -> float:
         return self._read_hardware()
 
-    @safety(max=200.0, min=-40.0, reason="Sensor rated -40 to 200°C", hard=True)
+    @safety(max=200.0, min=-40.0, reason="Sensor rated from negative 40 to 200 celsius", hard=True)
     @writable(type="float", description="Alert threshold", unit="celsius")
     def alert_threshold(self, value: float):
         self._threshold = value
 
-    @procedure(description="Zero-point calibration", requires_confirmation=True)
+    @procedure(description="Zero point calibration", requires_confirmation=True)
     def calibrate(self, reference_temp: float = 0.0):
         self._offset = reference_temp - self._read_raw()
         return {"calibrated": True, "offset": self._offset}
@@ -119,18 +119,18 @@ khp serve --port 7400                # Start MCP server
 
 ```
 Agent: What devices are available?
-→ khp_discover() → [{id: "sensor_1", type: "sensor", status: "online"}]
+>>> khp_discover() >>> [{id: "sensor_1", type: "sensor", status: "online"}]
 
-Agent: What's the current temperature?
-→ khp_read(device_id="sensor_1", property="temperature")
-→ {value: 23.4, unit: "celsius", timestamp: "2024-08-28T14:30:00Z"}
+Agent: What is the current temperature?
+>>> khp_read(device_id="sensor_1", property="temperature")
+>>> {value: 23.4, unit: "celsius", timestamp: "2024-08-28T14:30:00Z"}
 
-Agent: Set alert threshold to 300°C
-→ khp_write(device_id="sensor_1", property="alert_threshold", value=300.0)
-→ ERROR: SAFETY_BLOCKED — Value 300.0 exceeds hard limit (max: 200.0)
+Agent: Set alert threshold to 300 celsius
+>>> khp_write(device_id="sensor_1", property="alert_threshold", value=300.0)
+>>> ERROR: SAFETY_BLOCKED: Value 300.0 exceeds hard limit (max: 200.0)
 ```
 
----
+<br>
 
 ## Architecture
 
@@ -156,7 +156,7 @@ Agent: Set alert threshold to 300°C
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │                    DRIVER INTERFACE                          │ │
 │  │  @readable  │  @writable  │  @procedure  │  @safety         │ │
-│  │  Auto-manifest  │  Audit log  │  Job tracking  │  E-Stop    │ │
+│  │  Auto manifest  │  Audit log  │  Job tracking  │  E Stop    │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └────────────────────────────┬────────────────────────────────────┘
                              │
@@ -166,7 +166,7 @@ Agent: Set alert threshold to 300°C
 └─────────────────────────────────────────────────────────────────┘
 ```
 
----
+<br>
 
 ## The Four Primitives
 
@@ -175,30 +175,30 @@ Every hardware interaction maps to one of four operations:
 | Primitive | Decorator | Purpose | Example |
 |-----------|-----------|---------|---------|
 | **READ** | `@readable` | Get current sensor/state value | `temperature`, `position`, `status` |
-| **WRITE** | `@writable` | Set a parameter (safety-enforced) | `set_temperature(95.0)`, `set_speed(100)` |
-| **EXECUTE** | `@procedure` | Run a multi-step operation | `aspirate(volume=100)`, `home_axis()` |
-| **DISCOVER** | automatic | Find devices on the network | `khp discover --type thermocycler` |
+| **WRITE** | `@writable` | Set a parameter (safety enforced) | `set_temperature(95.0)`, `set_speed(100)` |
+| **EXECUTE** | `@procedure` | Run a multi step operation | `aspirate(volume=100)`, `home_axis()` |
+| **DISCOVER** | automatic | Find devices on the network | `khp discover` with type filter |
 
-This covers 95% of hardware interactions. Complex workflows are built by composing these primitives — the agent decides the sequence, the driver enforces safety at each step.
+This covers 95% of hardware interactions. Complex workflows are built by composing these primitives: the agent decides the sequence, the driver enforces safety at each step.
 
----
+<br>
 
 ## Safety Model
 
-MHP implements defense-in-depth with three layers that **cannot be bypassed by the AI agent**:
+MHP implements defense in depth with three layers that **cannot be bypassed by the AI agent**:
 
 ### Layer 1: Hard Limits (BLOCKED)
 
 Operations outside absolute hardware ratings are refused entirely.
 
 ```python
-@safety(max=120.0, min=4.0, reason="Hardware rated 4-120°C", hard=True)
+@safety(max=120.0, min=4.0, reason="Hardware rated 4 to 120 celsius", hard=True)
 @writable(type="float", unit="celsius")
 def temperature(self, value: float):
     self.device.set_temp(value)
 ```
 
-Agent writes `200.0` → **SafetyBlockedError** — operation never executes.
+Agent writes `200.0` → **SafetyBlockedError**: operation never executes.
 
 ### Layer 2: Soft Limits (CLAMPED)
 
@@ -210,7 +210,7 @@ Values outside recommended operating range are silently clamped.
 
 Agent writes `100.0` → Actual value set to `80.0`, response notes `safety_check: "clamped"`.
 
-### Layer 3: Confirmation Gates (HUMAN-IN-THE-LOOP)
+### Layer 3: Confirmation Gates (HUMAN IN THE LOOP)
 
 Dangerous or irreversible operations require explicit human approval.
 
@@ -220,22 +220,22 @@ def dispense_acid(self, volume_ml: float):
     ...
 ```
 
-Agent calls procedure → **ConfirmationRequiredError** with unique ID → Human approves/denies.
+Agent calls procedure → **ConfirmationRequiredError** with unique ID → Human approves or denies.
 
 ### Emergency Stop
 
-Every driver supports `emergency_stop()` — immediately halts all operations, aborts running jobs, and sets the device to a safe state.
+Every driver supports `emergency_stop()` which immediately halts all operations, aborts running jobs, and sets the device to a safe state.
 
 ```bash
-khp emergency-stop           # Stop ALL devices
-khp emergency-stop pump_1    # Stop specific device
+khp emergency_stop           # Stop ALL devices
+khp emergency_stop pump_1    # Stop specific device
 ```
 
----
+<br>
 
 ## Available Drivers
 
-MHP ships with **10 production-ready drivers** covering the most common hardware categories:
+MHP ships with **10 production ready drivers** covering the most common hardware categories:
 
 ### Simulated (No Hardware Required)
 
@@ -243,15 +243,15 @@ MHP ships with **10 production-ready drivers** covering the most common hardware
 |--------|-------------|----------|
 | `SimulatedThermocycler` | Models thermal dynamics with realistic ramp rates | Testing, demos, CI/CD |
 | `SimulatedLiquidHandler` | Pipetting simulation with volume tracking | Protocol development |
-| `SimulatedRoboticArm` | 6-axis motion with collision detection | Motion planning |
+| `SimulatedRoboticArm` | 6 axis motion with collision detection | Motion planning |
 
 ### Physical Hardware
 
 | Driver | Connection | Install | Devices |
 |--------|-----------|---------|---------|
-| `RaspberryPiGPIO` | GPIO/I2C/SPI | `pip install khp[gpio]` | Any Pi-connected sensor/actuator |
+| `RaspberryPiGPIO` | GPIO/I2C/SPI | `pip install khp[gpio]` | Any Pi connected sensor/actuator |
 | `ArduinoDevice` | Serial USB | `pip install khp[serial]` | Arduino Uno/Mega/Nano |
-| `SerialDevice` | RS-232/485 | `pip install khp[serial]` | Lab scales, PLCs, legacy equipment |
+| `SerialDevice` | RS232/485 | `pip install khp[serial]` | Lab scales, PLCs, legacy equipment |
 | `Camera` | USB/IP/RTSP | `pip install khp[camera]` | Webcams, IP cameras, microscopes |
 
 ### Network Protocols
@@ -259,7 +259,7 @@ MHP ships with **10 production-ready drivers** covering the most common hardware
 | Driver | Connection | Install | Devices |
 |--------|-----------|---------|---------|
 | `RESTDevice` | HTTP API | `pip install khp[rest]` | Smart plugs, cloud devices, APIs |
-| `MQTTDevice` | MQTT broker | `pip install khp[mqtt]` | Zigbee, Z-Wave, Home Assistant |
+| `MQTTDevice` | MQTT broker | `pip install khp[mqtt]` | Zigbee, Z Wave, Home Assistant |
 | `ModbusDevice` | TCP/RTU | `pip install khp[modbus]` | Industrial PLCs, HVAC, meters |
 | `SCPIDevice` | GPIB/USB/LAN | `pip install khp[visa]` | Oscilloscopes, power supplies, DMMs |
 
@@ -267,10 +267,10 @@ MHP ships with **10 production-ready drivers** covering the most common hardware
 
 | Driver | Connection | Devices |
 |--------|-----------|---------|
-| `FileDropDevice` | Filesystem | G-code printers, batch processors |
-| `SmartPlug` | REST | Tasmota, Shelly, TP-Link |
+| `FileDropDevice` | Filesystem | G code printers, batch processors |
+| `SmartPlug` | REST | Tasmota, Shelly, TP Link |
 | `Zigbee2MQTTDevice` | MQTT | Any Zigbee device via zigbee2mqtt |
-| `HomeAssistantDevice` | MQTT | Any HA-connected entity |
+| `HomeAssistantDevice` | MQTT | Any HA connected entity |
 
 ### Install Everything
 
@@ -278,11 +278,11 @@ MHP ships with **10 production-ready drivers** covering the most common hardware
 pip install khp[all]
 ```
 
----
+<br>
 
 ## MCP Integration
 
-MHP is designed as a **first-class MCP server**. Any MCP-compatible AI agent can control hardware immediately:
+MHP is designed as a **first class MCP server**. Any MCP compatible AI agent can control hardware immediately:
 
 ### Exposed Tools
 
@@ -290,7 +290,7 @@ MHP is designed as a **first-class MCP server**. Any MCP-compatible AI agent can
 |----------|-------------|
 | `khp_discover` | Find available devices (filter by type, capability) |
 | `khp_read` | Read a device property |
-| `khp_write` | Write a device property (safety-enforced) |
+| `khp_write` | Write a device property (safety enforced) |
 | `khp_execute` | Run a procedure |
 | `khp_manifest` | Get full device capabilities |
 | `khp_bus_read` | Read from shared State Bus |
@@ -323,11 +323,11 @@ server.register_driver(SimulatedThermocycler())
 server.serve(port=7400)
 ```
 
----
+<br>
 
 ## State Bus
 
-The State Bus provides shared memory for multi-device coordination:
+The State Bus provides shared memory for multi device coordination:
 
 ```python
 from khp.state_bus import StateBus, Transform
@@ -350,13 +350,13 @@ bus.add_transform(Transform(
 # React to events
 bus.on("overheat_alarm", lambda e: emergency_shutdown())
 
-# Devices write, agents read — or vice versa
+# Devices write, agents read, or vice versa
 bus.write_slot("reactor_temp", 87.5)
 ```
 
 **Transform operations:** `threshold`, `scale`, `clamp`, `moving_average`, `delta`
 
----
+<br>
 
 ## SDKs
 
@@ -385,14 +385,17 @@ import { discover, DeviceRegistry } from '@cuntinum/khp';
 ```
 
 Both SDKs provide identical APIs:
-- `Driver` base class with decorator-driven capability declaration
-- `StateBus` for inter-device communication
-- `DeviceRegistry` for discovery and registration
-- `Manifest` utilities for validation
-- Full MCP server implementation
-- Complete error types with protocol error codes
 
----
+| Module | Purpose |
+|--------|---------|
+| `Driver` | Base class with decorator driven capability declaration |
+| `StateBus` | Inter device communication with typed slots and events |
+| `DeviceRegistry` | Discovery and registration of hardware devices |
+| `Manifest` | Utilities for validation and export |
+| `MCP Server` | Full Model Context Protocol server implementation |
+| `Errors` | Complete error types with protocol error codes |
+
+<br>
 
 ## CLI
 
@@ -407,11 +410,11 @@ khp execute device_1 calibrate     # Run procedure
 khp manifest device_1              # Show capabilities
 khp monitor device_1 temperature   # Live monitoring
 khp serve --port 7400              # Start MCP server
-khp validate ./my-driver/          # Validate driver
-khp emergency-stop                 # STOP ALL
+khp validate ./my_driver/          # Validate driver
+khp emergency_stop                 # STOP ALL
 ```
 
----
+<br>
 
 ## Project Structure
 
@@ -419,7 +422,7 @@ khp emergency-stop                 # STOP ALL
 model-hardware-protocol/
 ├── spec/                          Protocol specification
 │   ├── PROTOCOL.md                 Full protocol spec (primitives, errors, lifecycle)
-│   ├── SAFETY.md                   Three-layer safety model
+│   ├── SAFETY.md                   Three layer safety model
 │   ├── DISCOVERY.md                Device discovery (mDNS, registry, manual)
 │   └── MANIFEST.md                 Capabilities manifest JSON schema
 ├── sdk/
@@ -430,24 +433,24 @@ model-hardware-protocol/
 │   └── typescript/                TypeScript SDK
 │       └── src/                    Full mirror of Python SDK
 ├── drivers/                       10 reference driver implementations
-│   ├── docker-sim/                 Simulated devices (no hardware needed)
-│   ├── raspberry-pi/               GPIO, I2C, camera
+│   ├── docker_sim/                 Simulated devices (no hardware needed)
+│   ├── raspberry_pi/               GPIO, I2C, camera
 │   ├── arduino/                    Serial text protocol
-│   ├── serial-generic/             RS-232/485
+│   ├── serial_generic/             RS232/485
 │   ├── camera/                     USB/IP/RTSP with motion detection
-│   ├── rest-generic/               HTTP API + smart plugs
-│   ├── mqtt-iot/                   MQTT, Zigbee2MQTT, Home Assistant
+│   ├── rest_generic/               HTTP API + smart plugs
+│   ├── mqtt_iot/                   MQTT, Zigbee2MQTT, Home Assistant
 │   ├── modbus/                     Industrial Modbus TCP/RTU
-│   ├── scpi-visa/                  Lab instruments (GPIB/USB/LAN)
-│   └── file-drop/                  File-based interfaces, G-code
+│   ├── scpi_visa/                  Lab instruments (GPIB/USB/LAN)
+│   └── file_drop/                  File based interfaces, G code
 ├── mcp/                           MCP server implementation
-├── cli/                           Command-line interface
+├── cli/                           Command line interface
 ├── tests/                         Comprehensive test suite (pytest)
 ├── docs/                          Documentation
-│   ├── getting-started.md          Installation and first driver
-│   ├── writing-a-driver.md         Full driver authoring guide
+│   ├── getting_started.md          Installation and first driver
+│   ├── writing_a_driver.md         Full driver authoring guide
 │   ├── safety.md                   Safety configuration reference
-│   ├── mcp-setup.md               MCP server setup
+│   ├── mcp_setup.md               MCP server setup
 │   └── drivers.md                  Available driver catalog
 ├── examples/                      Usage examples
 ├── .github/workflows/             CI/CD (test matrix + publish)
@@ -455,7 +458,7 @@ model-hardware-protocol/
 └── LICENSE                        Apache 2.0
 ```
 
----
+<br>
 
 ## Comparison
 
@@ -465,29 +468,29 @@ model-hardware-protocol/
 | Model Support | Any model | Claude only | Single model |
 | Language SDKs | Python + TypeScript | Python (reference) | Custom |
 | Ready Drivers | 10 categories | 3 partners | 0 |
-| Safety Model | 3-layer (hard/soft/confirm) | Reference files | Custom per device |
-| State Bus | Built-in (slots + transforms) | Not specified | Custom |
+| Safety Model | 3 layer (hard/soft/confirm) | Reference files | Custom per device |
+| State Bus | Built in (slots + transforms) | Not specified | Custom |
 | MCP Native | Yes (8 tools) | Planned | Custom |
 | Discovery | mDNS + registry + manual | Not specified | Custom |
-| Emergency Stop | Universal | Per-device | Custom |
+| Emergency Stop | Universal | Per device | Custom |
 | Production Ready | Yes (audit, jobs, lifecycle) | Research only | Varies |
 | Community Drivers | Accepting PRs now | Not yet | N/A |
 
----
+<br>
 
 ## Design Principles
 
-1. **Safety is non-negotiable** — No agent, no prompt, no override can bypass hardware safety limits. The driver defines the envelope; the protocol enforces it.
+1. **Safety is non negotiable.** No agent, no prompt, no override can bypass hardware safety limits. The driver defines the envelope; the protocol enforces it.
 
-2. **Four primitives cover everything** — Read, Write, Execute, Discover. Complex workflows emerge from composing simple operations. The agent decides strategy; the driver ensures safety.
+2. **Four primitives cover everything.** Read, Write, Execute, Discover. Complex workflows emerge from composing simple operations. The agent decides strategy; the driver ensures safety.
 
-3. **Model-agnostic by design** — Zero coupling to any specific AI model, framework, or vendor. If it can call a function, it can control hardware.
+3. **Model agnostic by design.** Zero coupling to any specific AI model, framework, or vendor. If it can call a function, it can control hardware.
 
-4. **Drivers are thin** — A driver is a 50-200 line adapter, not a framework. Decorators declare capabilities; the protocol handles safety, audit, jobs, and lifecycle.
+4. **Drivers are thin.** A driver is a 50 to 200 line adapter, not a framework. Decorators declare capabilities; the protocol handles safety, audit, jobs, and lifecycle.
 
-5. **Production-first** — Audit logs, connection lifecycle, job tracking, emergency stop, health checks. Not a demo — designed for real labs and factories.
+5. **Production first.** Audit logs, connection lifecycle, job tracking, emergency stop, health checks. Not a demo: designed for real labs and factories.
 
----
+<br>
 
 ## Roadmap
 
@@ -498,25 +501,27 @@ model-hardware-protocol/
 - [x] MCP server (8 tools)
 - [x] CLI (12 commands)
 - [x] State Bus (slots, transforms, events)
-- [x] Safety framework (3-layer)
-- [x] Test suite (60+ test cases)
+- [x] Safety framework (3 layer)
+- [x] Test suite (91 test cases)
 - [x] CI/CD (GitHub Actions)
 - [x] Documentation site
-- [ ] PyPI + npm publication (v0.1.0)
+- [x] npm publication (v0.1.0)
+- [ ] PyPI publication (v0.1.0)
 - [ ] Certification program for community drivers
-- [ ] Web dashboard (real-time device monitoring)
+- [ ] Web dashboard (real time device monitoring)
 - [ ] Hardware validation lab results
 - [ ] ROS 2 bridge driver
-- [ ] OPC-UA industrial driver
+- [ ] OPC UA industrial driver
 - [ ] LabVIEW bridge driver
 
----
+<br>
 
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 **Ways to contribute:**
+
 - Write a driver for your hardware
 - Improve documentation
 - Report bugs or suggest features
@@ -531,13 +536,13 @@ pip install -e sdk/python/[dev]
 pytest tests/ -v
 ```
 
----
+<br>
 
 ## License
 
-[Apache 2.0](./LICENSE) — Use commercially. Fork freely. Contribute back.
+[Apache 2.0](./LICENSE): Use commercially. Fork freely. Contribute back.
 
----
+<br>
 
 <p align="center">
   <strong>Built by <a href="https://cuntinum.com">Cuntinum</a></strong><br>
