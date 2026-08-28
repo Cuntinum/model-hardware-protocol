@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+  ur5e:
+    build:
+      context: ..
+      dockerfile: simulators/Dockerfile
+    command: python -m simulators.universal_robots --host 0.0.0.0
+    ports:
+      - "30004:30004"
+      - "29999:29999"
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',29999),2); s.close()"]
+      interval: 5s
+      retries: 3
+
+  sunspec_inverter:
+    build:
+      context: ..
+      dockerfile: simulators/Dockerfile
+    command: python -m simulators.modbus_sunspec --host 0.0.0.0 --port 502
+    ports:
+      - "5020:502"
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',502),2); s.close()"]
+      interval: 5s
+      retries: 3
+
+  knx_gateway:
+    build:
+      context: ..
+      dockerfile: simulators/Dockerfile
+    command: python -m simulators.knx_gateway --host 0.0.0.0
+    ports:
+      - "3671:3671/udp"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  artnet_node:
+    build:
+      context: ..
+      dockerfile: simulators/Dockerfile
+    command: python -m simulators.artnet_node --host 0.0.0.0
+    ports:
+      - "6454:6454/udp"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  modbus_plc:
+    image: oitc/modbus-server:latest
+    ports:
+      - "5021:502"
+    environment:
+      - MODBUS_SERVER_HOST=0.0.0.0
+      - MODBUS_SERVER_PORT=502
+
+  mqtt_broker:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  opcua_server:
+    image: open62541/open62541:latest
+    ports:
+      - "4840:4840"
+    command: /open62541/build/bin/examples/server_ctt
