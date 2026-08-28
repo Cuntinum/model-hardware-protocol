@@ -3,7 +3,7 @@
  */
 
 import { Driver } from './core.js';
-import { getRegistry, discover } from './discovery.js';
+import { getRegistry, discover, register } from './discovery.js';
 import { StateBus } from './state-bus.js';
 import { DeviceNotFoundError } from './errors.js';
 
@@ -144,8 +144,9 @@ export class KHPMCPServer {
 export function createMCPServer(drivers?: Driver[], stateBus?: StateBus): KHPMCPServer {
   const server = new KHPMCPServer(stateBus);
   if (drivers) {
-    const { register } = require('./discovery.js');
-    for (const driver of drivers) register(driver);
+    for (const driver of drivers) {
+      register(driver);
+    }
   }
   return server;
 }

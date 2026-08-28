@@ -3,7 +3,7 @@
  */
 
 export class KHPError extends Error {
-  readonly code: string = 'KHP_ERROR';
+  code: string = 'KHP_ERROR';
   readonly deviceId: string;
   readonly details: Record<string, unknown>;
 
@@ -28,7 +28,7 @@ export class KHPError extends Error {
 }
 
 export class DeviceNotFoundError extends KHPError {
-  readonly code = 'DEVICE_NOT_FOUND';
+  override code ='DEVICE_NOT_FOUND';
   constructor(deviceId: string) {
     super(`Device '${deviceId}' not found`, deviceId);
     this.name = 'DeviceNotFoundError';
@@ -36,7 +36,7 @@ export class DeviceNotFoundError extends KHPError {
 }
 
 export class PropertyNotFoundError extends KHPError {
-  readonly code = 'PROPERTY_NOT_FOUND';
+  override code ='PROPERTY_NOT_FOUND';
   constructor(property: string, deviceId: string) {
     super(`Property '${property}' not found on ${deviceId}`, deviceId, { property });
     this.name = 'PropertyNotFoundError';
@@ -44,7 +44,7 @@ export class PropertyNotFoundError extends KHPError {
 }
 
 export class SafetyBlockedError extends KHPError {
-  readonly code = 'SAFETY_BLOCKED';
+  override code ='SAFETY_BLOCKED';
   constructor(
     message: string,
     deviceId: string,
@@ -58,7 +58,7 @@ export class SafetyBlockedError extends KHPError {
 }
 
 export class SafetyClampedError extends KHPError {
-  readonly code = 'SAFETY_CLAMPED';
+  override code ='SAFETY_CLAMPED';
   constructor(
     message: string,
     deviceId: string,
@@ -72,7 +72,7 @@ export class SafetyClampedError extends KHPError {
 }
 
 export class PreconditionFailedError extends KHPError {
-  readonly code = 'PRECONDITION_FAILED';
+  override code ='PRECONDITION_FAILED';
   constructor(message: string, deviceId: string) {
     super(message, deviceId);
     this.name = 'PreconditionFailedError';
@@ -80,7 +80,7 @@ export class PreconditionFailedError extends KHPError {
 }
 
 export class ConfirmationRequiredError extends KHPError {
-  readonly code = 'CONFIRMATION_REQUIRED';
+  override code ='CONFIRMATION_REQUIRED';
   constructor(
     message: string,
     deviceId: string,
@@ -93,7 +93,7 @@ export class ConfirmationRequiredError extends KHPError {
 }
 
 export class DeviceBusyError extends KHPError {
-  readonly code = 'DEVICE_BUSY';
+  override code ='DEVICE_BUSY';
   constructor(deviceId: string) {
     super(`Device '${deviceId}' is busy`, deviceId);
     this.name = 'DeviceBusyError';
@@ -101,7 +101,7 @@ export class DeviceBusyError extends KHPError {
 }
 
 export class DeviceOfflineError extends KHPError {
-  readonly code = 'DEVICE_OFFLINE';
+  override code ='DEVICE_OFFLINE';
   constructor(deviceId: string) {
     super(`Device '${deviceId}' is offline`, deviceId);
     this.name = 'DeviceOfflineError';
@@ -109,7 +109,7 @@ export class DeviceOfflineError extends KHPError {
 }
 
 export class TimeoutError extends KHPError {
-  readonly code = 'TIMEOUT';
+  override code ='TIMEOUT';
   constructor(message: string, deviceId: string) {
     super(message, deviceId);
     this.name = 'TimeoutError';
@@ -117,7 +117,7 @@ export class TimeoutError extends KHPError {
 }
 
 export class HardwareError extends KHPError {
-  readonly code = 'HARDWARE_ERROR';
+  override code ='HARDWARE_ERROR';
   constructor(message: string, deviceId: string) {
     super(message, deviceId);
     this.name = 'HardwareError';

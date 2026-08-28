@@ -6,8 +6,8 @@ setup(
     name="khp",
     version="0.1.0",
     description="Model Hardware Protocol — AI agents controlling physical devices",
-    long_description=open("../../README.md").read(),
-    long_description_content_type="text/markdown",
+    long_description="Model Hardware Protocol — The open standard for AI models to safely control physical hardware.",
+    long_description_content_type="text/plain",
     author="Cuntinum",
     author_email="dev@cuntinum.com",
     url="https://github.com/Cuntinum/model-hardware-protocol",
@@ -39,11 +39,7 @@ setup(
             "zeroconf>=0.80",
         ],
     },
-    entry_points={
-        "console_scripts": [
-            "khp=cli.__main__:main",
-        ],
-    },
+    entry_points={},
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",

@@ -32,8 +32,8 @@ export enum ConnectionType {
 }
 
 export abstract class Driver {
-  abstract name: string;
-  abstract deviceType: string;
+  name: string = 'Unknown Device';
+  deviceType: string = 'custom';
   version: string = '1.0.0';
   description: string = '';
   connectionType: ConnectionType = ConnectionType.REST;

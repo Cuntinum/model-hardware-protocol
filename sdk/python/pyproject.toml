@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "khp"
 version = "0.1.0"
 description = "Model Hardware Protocol — AI agents controlling physical devices"
-readme = "../../README.md"
+readme = {text = "Model Hardware Protocol — The open standard for AI models to safely control physical hardware.", content-type = "text/plain"}
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
 authors = [{name = "Cuntinum", email = "dev@cuntinum.com"}]
@@ -58,7 +58,6 @@ all = [
 ]
 
 [project.scripts]
-khp = "cli.__main__:main"
 
 [tool.pytest.ini_options]
 testpaths = ["../../tests"]
