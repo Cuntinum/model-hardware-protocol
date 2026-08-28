@@ -1,0 +1,305 @@
+{
+  "$schema": "https://khp.dev/schema/certification-checklist/v1",
+  "version": "1.0.0",
+  "description": "Machine readable certification checklist for MHP driver validation",
+  "tiers": {
+    "bronze": {
+      "label": "Community Verified",
+      "automated": true,
+      "checks": [
+        {
+          "id": "code_quality_lint",
+          "category": "code_quality",
+          "description": "Driver passes ruff check with zero errors",
+          "command": "ruff check {driver_path}/ --select E,F,W",
+          "required": true
+        },
+        {
+          "id": "manifest_valid",
+          "category": "manifest",
+          "description": "Manifest contains all required fields and validates against schema",
+          "validator": "khp.certification.validate_manifest",
+          "required": true
+        },
+        {
+          "id": "manifest_has_readable",
+          "category": "manifest",
+          "description": "Manifest declares at least one readable property",
+          "check": "len(manifest['readable']) >= 1",
+          "required": true
+        },
+        {
+          "id": "manifest_has_schema",
+          "category": "manifest",
+          "description": "Manifest includes the $schema field",
+          "check": "manifest.get('$schema') == 'https://khp.dev/schema/manifest/v1'",
+          "required": true
+        },
+        {
+          "id": "safety_defined",
+          "category": "safety",
+          "description": "At least one hard limit defined or documented justification provided",
+          "check": "len(manifest['safety'].get('hard_limits', {})) >= 1 or manifest['safety'].get('justification')",
+          "required": true
+        },
+        {
+          "id": "emergency_stop_exists",
+          "category": "safety",
+          "description": "Driver implements emergency_stop() method",
+          "check": "hasattr(driver, 'emergency_stop') and callable(driver.emergency_stop)",
+          "required": true
+        },
+        {
+          "id": "emergency_stop_sets_error",
+          "category": "safety",
+          "description": "emergency_stop() sets device status to ERROR",
+          "validator": "khp.certification.test_emergency_stop_status",
+          "required": true
+        },
+        {
+          "id": "tests_exist",
+          "category": "tests",
+          "description": "Minimum 5 unit tests present",
+          "check": "test_count >= 5",
+          "required": true
+        },
+        {
+          "id": "tests_pass",
+          "category": "tests",
+          "description": "All tests pass with pytest",
+          "command": "pytest {driver_path}/tests/ -v",
+          "required": true
+        },
+        {
+          "id": "readme_exists",
+          "category": "documentation",
+          "description": "README file present with installation, hardware, and usage sections",
+          "check": "readme_has_sections(['installation', 'hardware', 'usage'])",
+          "required": true
+        },
+        {
+          "id": "license_present",
+          "category": "legal",
+          "description": "OSI approved license file present",
+          "check": "license_file_exists and license_is_osi_approved",
+          "required": true
+        },
+        {
+          "id": "no_hardcoded_secrets",
+          "category": "security",
+          "description": "No hardcoded credentials, API keys, or device addresses",
+          "validator": "khp.certification.scan_for_secrets",
+          "required": true
+        }
+      ]
+    },
+    "silver": {
+      "label": "Tested and Reviewed",
+      "automated": false,
+      "includes": "bronze",
+      "checks": [
+        {
+          "id": "code_review_approved",
+          "category": "review",
+          "description": "Approved by at least one MHP maintainer",
+          "type": "manual",
+          "required": true
+        },
+        {
+          "id": "test_coverage_80",
+          "category": "tests",
+          "description": "Minimum 80% line coverage on driver code",
+          "command": "pytest {driver_path}/tests/ --cov={driver_path} --cov-report=json",
+          "threshold": 80.0,
+          "required": true
+        },
+        {
+          "id": "integration_tests",
+          "category": "tests",
+          "description": "At least 3 integration tests demonstrating full workflows",
+          "check": "integration_test_count >= 3",
+          "required": true
+        },
+        {
+          "id": "error_handling_proper",
+          "category": "code_quality",
+          "description": "All error cases use KHP error types (no bare except or generic Exception)",
+          "validator": "khp.certification.check_error_handling",
+          "required": true
+        },
+        {
+          "id": "lifecycle_complete",
+          "category": "functionality",
+          "description": "connect(), disconnect(), and health_check() all implemented and tested",
+          "check": "all_lifecycle_methods_implemented",
+          "required": true
+        },
+        {
+          "id": "preconditions_defined",
+          "category": "safety",
+          "description": "Procedures with physical prerequisites define precondition checks",
+          "type": "manual",
+          "required": true
+        },
+        {
+          "id": "type_hints_complete",
+          "category": "code_quality",
+          "description": "Full type annotations on all public methods",
+          "validator": "khp.certification.check_type_hints",
+          "required": true
+        },
+        {
+          "id": "documentation_complete",
+          "category": "documentation",
+          "description": "API reference, configuration guide, troubleshooting section present",
+          "check": "readme_has_sections(['api', 'configuration', 'troubleshooting'])",
+          "required": true
+        },
+        {
+          "id": "changelog_exists",
+          "category": "documentation",
+          "description": "CHANGELOG with semantic versioning",
+          "check": "changelog_file_exists",
+          "required": true
+        },
+        {
+          "id": "safety_limits_verified",
+          "category": "safety",
+          "description": "Hard limits match manufacturer specifications (datasheet reference required)",
+          "type": "manual",
+          "required": true
+        },
+        {
+          "id": "safety_no_bypass",
+          "category": "safety",
+          "description": "No code paths that bypass safety checks for writable properties",
+          "validator": "khp.certification.check_safety_bypass",
+          "required": true
+        },
+        {
+          "id": "audit_log_functional",
+          "category": "functionality",
+          "description": "All operations produce audit log entries",
+          "validator": "khp.certification.verify_audit_logging",
+          "required": true
+        }
+      ]
+    },
+    "gold": {
+      "label": "Hardware Validated",
+      "automated": false,
+      "includes": "silver",
+      "checks": [
+        {
+          "id": "hardware_test_evidence",
+          "category": "validation",
+          "description": "Video or photographic evidence of driver controlling real hardware",
+          "type": "manual",
+          "evidence_required": true,
+          "required": true
+        },
+        {
+          "id": "safety_boundary_test",
+          "category": "validation",
+          "description": "Hard limits tested at physical boundaries (device does not exceed rated values)",
+          "type": "manual",
+          "evidence_required": true,
+          "required": true
+        },
+        {
+          "id": "emergency_stop_physical",
+          "category": "validation",
+          "description": "Emergency stop verified to halt physical operation within 100ms",
+          "type": "manual",
+          "evidence_required": true,
+          "required": true
+        },
+        {
+          "id": "stress_test_1000",
+          "category": "validation",
+          "description": "1000+ operations completed without connection loss or state corruption",
+          "type": "manual",
+          "report_required": true,
+          "required": true
+        },
+        {
+          "id": "edge_case_power_loss",
+          "category": "validation",
+          "description": "Device recovers to safe state after unexpected power loss",
+          "type": "manual",
+          "evidence_required": true,
+          "required": true
+        },
+        {
+          "id": "edge_case_disconnect",
+          "category": "validation",
+          "description": "Driver handles cable disconnect gracefully",
+          "type": "manual",
+          "evidence_required": true,
+          "required": true
+        },
+        {
+          "id": "concurrent_access",
+          "category": "validation",
+          "description": "Tested with 2+ instances running concurrently without conflicts",
+          "type": "manual",
+          "report_required": true,
+          "required": true
+        },
+        {
+          "id": "performance_benchmarks",
+          "category": "validation",
+          "description": "Read and write latency benchmarks documented",
+          "type": "manual",
+          "report_required": true,
+          "required": true
+        },
+        {
+          "id": "production_deployment",
+          "category": "validation",
+          "description": "At least one deployment report from a real user or lab",
+          "type": "manual",
+          "required": true
+        },
+        {
+          "id": "maintainer_commitment",
+          "category": "maintenance",
+          "description": "Named maintainer commits to 90 day response time on issues",
+          "type": "manual",
+          "required": true
+        }
+      ]
+    }
+  },
+  "recertification": {
+    "interval_months": 12,
+    "reminder_days_before": [60, 30],
+    "grace_period_days": 30,
+    "automatic_renewal": {
+      "bronze": true,
+      "silver": true,
+      "gold": false
+    },
+    "renewal_conditions": {
+      "bronze": ["automated_checks_pass", "no_open_safety_issues"],
+      "silver": ["automated_checks_pass", "tests_pass_latest_sdk", "no_open_safety_issues"],
+      "gold": ["all_silver_conditions", "maintainer_confirms_hardware_functional", "no_critical_bugs_past_year"]
+    }
+  },
+  "revocation": {
+    "immediate_conditions": [
+      "safety_vulnerability_discovered",
+      "hardware_damage_confirmed",
+      "malicious_code_detected",
+      "license_violation"
+    ],
+    "grace_period_conditions": [
+      {
+        "condition": "maintainer_unresponsive_90_days",
+        "action": "downgrade_to_bronze"
+      }
+    ],
+    "appeal_period_days": 30,
+    "permanent_ban_conditions": ["malicious_code_detected"]
+  }
+}

@@ -64,7 +64,7 @@ AI Agent  ►►►  MHP Driver  ►►►  Physical Device
 | **Production Ready** | Audit logging, emergency stop, precondition checks, job tracking, connection lifecycle |
 | **Discoverable** | Devices self announce via mDNS, central registry, or manual registration |
 | **Composable** | State Bus enables inter device coordination with typed slots, transforms, and pub/sub events |
-| **Extensible** | 10 reference drivers ship out of the box; community drivers slot in with zero framework code |
+| **Extensible** | 16 reference drivers ship out of the box; community drivers slot in with zero framework code |
 | **Open** | Apache 2.0: use commercially, fork freely, contribute back |
 
 <br>
@@ -235,7 +235,7 @@ khp emergency_stop pump_1    # Stop specific device
 
 ## Available Drivers
 
-MHP ships with **10 production ready drivers** covering the most common hardware categories:
+MHP ships with **16 production ready drivers** covering the most common hardware categories:
 
 ### Simulated (No Hardware Required)
 
@@ -262,6 +262,32 @@ MHP ships with **10 production ready drivers** covering the most common hardware
 | `MQTTDevice` | MQTT broker | `pip install khp[mqtt]` | Zigbee, Z Wave, Home Assistant |
 | `ModbusDevice` | TCP/RTU | `pip install khp[modbus]` | Industrial PLCs, HVAC, meters |
 | `SCPIDevice` | GPIB/USB/LAN | `pip install khp[visa]` | Oscilloscopes, power supplies, DMMs |
+
+### Robotics and Automotive
+
+| Driver | Connection | Install | Devices |
+|--------|-----------|---------|---------|
+| `ROS2BridgeDevice` | ROS 2 DDS | `pip install rclpy` | Mobile robots, manipulators, drones, autonomous vehicles |
+| `CANBusDevice` | SocketCAN/PCAN | `pip install python-can cantools` | ECUs, electric vehicles, battery management, motor controllers |
+
+### Building and Facilities
+
+| Driver | Connection | Install | Devices |
+|--------|-----------|---------|---------|
+| `BACnetDevice` | BACnet/IP | `pip install BAC0` | HVAC, lighting, access control, fire alarm, elevators |
+
+### Wireless and IoT
+
+| Driver | Connection | Install | Devices |
+|--------|-----------|---------|---------|
+| `BLEDevice` | BLE GATT | `pip install bleak` | IoT sensors, wearables, health devices, environmental monitors |
+
+### Enterprise and Lab
+
+| Driver | Connection | Install | Devices |
+|--------|-----------|---------|---------|
+| `OPCUADevice` | OPC UA TCP | `pip install asyncua` | Siemens, ABB, Rockwell, Beckhoff PLCs, SCADA systems |
+| `LabVIEWDevice` | REST/TCP | `pip install httpx` | NI instruments, DAQ, custom test equipment |
 
 ### Specialized
 
@@ -432,7 +458,7 @@ model-hardware-protocol/
 │   │   └── pyproject.toml         Build configuration
 │   └── typescript/                TypeScript SDK
 │       └── src/                    Full mirror of Python SDK
-├── drivers/                       10 reference driver implementations
+├── drivers/                       16 reference driver implementations
 │   ├── docker_sim/                 Simulated devices (no hardware needed)
 │   ├── raspberry_pi/               GPIO, I2C, camera
 │   ├── arduino/                    Serial text protocol
@@ -442,9 +468,17 @@ model-hardware-protocol/
 │   ├── mqtt_iot/                   MQTT, Zigbee2MQTT, Home Assistant
 │   ├── modbus/                     Industrial Modbus TCP/RTU
 │   ├── scpi_visa/                  Lab instruments (GPIB/USB/LAN)
-│   └── file_drop/                  File based interfaces, G code
+│   ├── file_drop/                  File based interfaces, G code
+│   ├── ros2/                       ROS 2 bridge (robots, drones, vehicles)
+│   ├── opcua/                      OPC UA industrial (PLCs, SCADA)
+│   ├── labview/                    LabVIEW bridge (NI instruments, DAQ)
+│   ├── canbus/                     CAN bus (automotive, EVs, ECUs)
+│   ├── ble/                        Bluetooth Low Energy (IoT, wearables)
+│   └── bacnet/                     BACnet building automation (HVAC)
 ├── mcp/                           MCP server implementation
 ├── cli/                           Command line interface
+├── certification/                 Driver certification program (3 tiers)
+├── dashboard/                     Real time web monitoring UI
 ├── tests/                         Comprehensive test suite (pytest)
 ├── docs/                          Documentation
 │   ├── getting_started.md          Installation and first driver
@@ -467,7 +501,7 @@ model-hardware-protocol/
 | Open Source | Apache 2.0 | Research preview (closed) | N/A |
 | Model Support | Any model | Claude only | Single model |
 | Language SDKs | Python + TypeScript | Python (reference) | Custom |
-| Ready Drivers | 10 categories | 3 partners | 0 |
+| Ready Drivers | 16 categories | 3 partners | 0 |
 | Safety Model | 3 layer (hard/soft/confirm) | Reference files | Custom per device |
 | State Bus | Built in (slots + transforms) | Not specified | Custom |
 | MCP Native | Yes (8 tools) | Planned | Custom |
@@ -497,7 +531,7 @@ model-hardware-protocol/
 - [x] Protocol specification (4 documents)
 - [x] Python SDK (core, decorators, state bus, discovery, manifest, errors)
 - [x] TypeScript SDK (full mirror)
-- [x] 10 reference drivers
+- [x] 16 reference drivers (10 original + 6 new)
 - [x] MCP server (8 tools)
 - [x] CLI (12 commands)
 - [x] State Bus (slots, transforms, events)
@@ -505,14 +539,21 @@ model-hardware-protocol/
 - [x] Test suite (91 test cases)
 - [x] CI/CD (GitHub Actions)
 - [x] Documentation site
-- [x] npm publication (v0.1.0)
+- [x] npm publication (v0.1.1)
+- [x] Certification program (Bronze/Silver/Gold tiers)
+- [x] Web dashboard (real time device monitoring)
+- [x] ROS 2 bridge driver
+- [x] OPC UA industrial driver
+- [x] LabVIEW bridge driver
+- [x] CAN bus automotive driver
+- [x] BLE (Bluetooth Low Energy) driver
+- [x] BACnet building automation driver
 - [ ] PyPI publication (v0.1.0)
-- [ ] Certification program for community drivers
-- [ ] Web dashboard (real time device monitoring)
 - [ ] Hardware validation lab results
-- [ ] ROS 2 bridge driver
-- [ ] OPC UA industrial driver
-- [ ] LabVIEW bridge driver
+- [ ] EtherCAT real time industrial driver
+- [ ] SiLA 2 lab automation bridge
+- [ ] gRPC microservices driver
+- [ ] PROFINET industrial driver
 
 <br>
 

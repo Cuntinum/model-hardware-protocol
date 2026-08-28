@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MHP Dashboard: Device Monitoring</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --surface-0: #0f1117;
+      --surface-1: #1a1d27;
+      --surface-2: #242836;
+      --surface-3: #2e3345;
+      --border: #3a3f52;
+      --text-primary: #e8eaed;
+      --text-secondary: #9aa0b4;
+      --text-muted: #6b7185;
+      --accent: #6c8cff;
+      --accent-dim: #4a6ad4;
+      --status-online: #34d399;
+      --status-offline: #6b7185;
+      --status-error: #f87171;
+      --status-busy: #fbbf24;
+      --status-maintenance: #a78bfa;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --toast-bg: #1e2235;
+      --chart-1: #6c8cff;
+      --chart-2: #34d399;
+      --chart-3: #fbbf24;
+      --chart-4: #a78bfa;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--surface-1);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header h1 span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--status-offline);
+      transition: background 0.3s;
+    }
+
+    .connection-dot.connected { background: var(--status-online); }
+    .connection-dot.error { background: var(--status-error); animation: pulse 1.5s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-estop {
+      background: var(--danger);
+      color: white;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-estop:hover {
+      background: var(--danger-hover);
+      box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.3);
+      transform: scale(1.02);
+    }
+
+    .btn-estop:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      background: var(--surface-3);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--border); }
+
+    .main {
+      padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .stat-card .label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .value {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .stat-card .value.online { color: var(--status-online); }
+    .stat-card .value.error { color: var(--status-error); }
+    .stat-card .value.busy { color: var(--status-busy); }
+
+    .device-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .device-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .device-card:hover {
+      border-color: var(--accent-dim);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .device-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(108, 140, 255, 0.2);
+    }
+
+    .device-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .device-name {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .device-type {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    .device-status {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .device-status.online { background: rgba(52, 211, 153, 0.15); color: var(--status-online); }
+    .device-status.offline { background: rgba(107, 113, 133, 0.15); color: var(--status-offline); }
+    .device-status.error { background: rgba(248, 113, 113, 0.15); color: var(--status-error); }
+    .device-status.busy { background: rgba(251, 191, 36, 0.15); color: var(--status-busy); }
+    .device-status.maintenance { background: rgba(167, 139, 250, 0.15); color: var(--status-maintenance); }
+
+    .device-readings {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .reading {
+      background: var(--surface-2);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .reading .reading-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .reading .reading-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .reading .reading-unit {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-left: 2px;
+    }
+
+    .device-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .detail-panel {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .detail-panel.visible { display: block; }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .detail-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .detail-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .detail-close:hover { background: var(--surface-3); }
+
+    .detail-properties {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .detail-prop {
+      background: var(--surface-2);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .detail-prop .prop-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .detail-prop .prop-value {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .chart-container {
+      background: var(--surface-2);
+      border-radius: 10px;
+      padding: 16px;
+      height: 280px;
+      position: relative;
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 360px;
+    }
+
+    .toast {
+      background: var(--toast-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: slideIn 0.3s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .toast.alarm { border-left: 3px solid var(--status-error); }
+    .toast.warning { border-left: 3px solid var(--status-busy); }
+    .toast.info { border-left: 3px solid var(--accent); }
+
+    .toast-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 0.8rem; font-weight: 600; }
+    .toast-message { font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; }
+    .toast-time { font-size: 0.6rem; color: var(--text-muted); margin-top: 4px; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text-secondary); }
+    .empty-state p { font-size: 0.85rem; max-width: 400px; margin: 0 auto; }
+
+    @media (max-width: 768px) {
+      .header { padding: 12px 16px; flex-wrap: wrap; gap: 12px; }
+      .main { padding: 16px; }
+      .device-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .detail-properties { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .toolbar { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>
+      MHP Dashboard
+      <span>Real Time Monitoring</span>
+    </h1>
+    <div class="toolbar">
+      <div class="connection-status">
+        <div class="connection-dot" id="connDot"></div>
+        <span id="connLabel">Disconnected</span>
+      </div>
+      <button class="btn btn-secondary" onclick="app.refresh()">Refresh</button>
+      <button class="btn btn-estop" onclick="app.emergencyStop()">EMERGENCY STOP</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="label">Total Devices</div>
+        <div class="value" id="statTotal">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Online</div>
+        <div class="value online" id="statOnline">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Errors</div>
+        <div class="value error" id="statErrors">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Active Jobs</div>
+        <div class="value busy" id="statJobs">0</div>
+      </div>
+    </section>
+
+    <section class="detail-panel" id="detailPanel">
+      <div class="detail-header">
+        <h2 id="detailTitle">Device Details</h2>
+        <button class="detail-close" onclick="app.closeDetail()">&times;</button>
+      </div>
+      <div class="detail-properties" id="detailProperties"></div>
+      <div class="chart-container">
+        <canvas id="detailChart"></canvas>
+      </div>
+    </section>
+
+    <section class="device-grid" id="deviceGrid">
+      <div class="empty-state">
+        <h3>No devices connected</h3>
+        <p>Connect to an MHP server to see devices. The dashboard will auto discover all registered hardware.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const app = {
+      ws: null,
+      devices: new Map(),
+      selectedDevice: null,
+      chart: null,
+      chartData: new Map(),
+      reconnectDelay: 2000,
+      maxReconnectDelay: 30000,
+      toastTimeout: 8000,
+
+      init() {
+        this.connect();
+        this.startSimulation();
+      },
+
+      connect() {
+        const host = new URLSearchParams(window.location.search).get('host') || 'localhost';
+        const port = new URLSearchParams(window.location.search).get('port') || '7400';
+        const url = `ws://${host}:${port}/ws`;
+
+        try {
+          this.ws = new WebSocket(url);
+          this.ws.onopen = () => this.onConnected();
+          this.ws.onmessage = (e) => this.onMessage(JSON.parse(e.data));
+          this.ws.onclose = () => this.onDisconnected();
+          this.ws.onerror = () => this.onDisconnected();
+        } catch (e) {
+          this.onDisconnected();
+        }
+      },
+
+      onConnected() {
+        document.getElementById('connDot').className = 'connection-dot connected';
+        document.getElementById('connLabel').textContent = 'Connected';
+        this.reconnectDelay = 2000;
+        this.send({ type: 'discover' });
+        this.send({ type: 'subscribe', events: ['*'] });
+        this.showToast('info', 'Connected', 'MHP server connection established');
+      },
+
+      onDisconnected() {
+        document.getElementById('connDot').className = 'connection-dot error';
+        document.getElementById('connLabel').textContent = 'Disconnected';
+        setTimeout(() => {
+          this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, this.maxReconnectDelay);
+          this.connect();
+        }, this.reconnectDelay);
+      },
+
+      onMessage(msg) {
+        switch (msg.type) {
+          case 'devices':
+            msg.devices.forEach(d => this.updateDevice(d));
+            break;
+          case 'reading':
+            this.updateReading(msg.device_id, msg.property, msg.value, msg.unit);
+            break;
+          case 'status_change':
+            this.updateDeviceStatus(msg.device_id, msg.status);
+            break;
+          case 'event':
+            this.handleEvent(msg);
+            break;
+          case 'alarm':
+            this.showToast('alarm', `ALARM: ${msg.device_id}`, msg.message);
+            break;
+        }
+        this.renderStats();
+      },
+
+      send(msg) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify(msg));
+        }
+      },
+
+      updateDevice(device) {
+        this.devices.set(device.device_id, {
+          ...this.devices.get(device.device_id),
+          ...device,
+          lastUpdate: new Date(),
+        });
+        this.renderDevices();
+      },
+
+      updateReading(deviceId, property, value, unit) {
+        const device = this.devices.get(deviceId);
+        if (!device) return;
+        if (!device.readings) device.readings = {};
+        device.readings[property] = { value, unit, timestamp: new Date() };
+        device.lastUpdate = new Date();
+
+        const key = `${deviceId}:${property}`;
+        if (!this.chartData.has(key)) this.chartData.set(key, []);
+        const series = this.chartData.get(key);
+        series.push({ x: Date.now(), y: value });
+        if (series.length > 60) series.shift();
+
+        this.renderDevices();
+        if (this.selectedDevice === deviceId) this.renderDetail(deviceId);
+      },
+
+      updateDeviceStatus(deviceId, status) {
+        const device = this.devices.get(deviceId);
+        if (!device) return;
+        const oldStatus = device.status;
+        device.status = status;
+        device.lastUpdate = new Date();
+
+        if (status === 'error' && oldStatus !== 'error') {
+          this.showToast('alarm', device.name || deviceId, `Status changed to ERROR`);
+        }
+        this.renderDevices();
+      },
+
+      handleEvent(msg) {
+        if (msg.event === 'emergency_stop') {
+          this.showToast('alarm', 'EMERGENCY STOP', `Device ${msg.device_id} halted`);
+        } else if (msg.event === 'overheat' || msg.event === 'safety_blocked') {
+          this.showToast('warning', msg.event.replace(/_/g, ' ').toUpperCase(), msg.message || `On ${msg.device_id}`);
+        } else {
+          this.showToast('info', msg.event, msg.message || `Device: ${msg.device_id}`);
+        }
+      },
+
+      emergencyStop() {
+        if (confirm('EMERGENCY STOP: This will halt ALL devices immediately. Proceed?')) {
+          this.send({ type: 'emergency_stop', device_id: null });
+          this.showToast('alarm', 'EMERGENCY STOP ACTIVATED', 'All devices commanded to halt');
+          this.devices.forEach(d => { d.status = 'error'; });
+          this.renderDevices();
+          this.renderStats();
+        }
+      },
+
+      refresh() {
+        this.send({ type: 'discover' });
+        this.showToast('info', 'Refreshing', 'Querying all devices');
+      },
+
+      selectDevice(deviceId) {
+        this.selectedDevice = deviceId;
+        document.querySelectorAll('.device-card').forEach(el => el.classList.remove('selected'));
+        const card = document.querySelector(`[data-device-id="${deviceId}"]`);
+        if (card) card.classList.add('selected');
+        this.renderDetail(deviceId);
+      },
+
+      closeDetail() {
+        this.selectedDevice = null;
+        document.getElementById('detailPanel').classList.remove('visible');
+        document.querySelectorAll('.device-card').forEach(el => el.classList.remove('selected'));
+      },
+
+      renderStats() {
+        const devices = Array.from(this.devices.values());
+        document.getElementById('statTotal').textContent = devices.length;
+        document.getElementById('statOnline').textContent = devices.filter(d => d.status === 'online').length;
+        document.getElementById('statErrors').textContent = devices.filter(d => d.status === 'error').length;
+        document.getElementById('statJobs').textContent = devices.filter(d => d.status === 'busy').length;
+      },
+
+      renderDevices() {
+        const grid = document.getElementById('deviceGrid');
+        if (this.devices.size === 0) {
+          grid.innerHTML = `<div class="empty-state"><h3>No devices connected</h3><p>Connect to an MHP server to see devices. The dashboard will auto discover all registered hardware.</p></div>`;
+          return;
+        }
+
+        grid.innerHTML = Array.from(this.devices.values()).map(device => {
+          const readings = device.readings || {};
+          const readingKeys = Object.keys(readings).slice(0, 4);
+          const readingsHtml = readingKeys.map(key => {
+            const r = readings[key];
+            return `<div class="reading"><div class="reading-label">${key.replace(/_/g, ' ')}</div><div class="reading-value">${this.formatValue(r.value)}<span class="reading-unit">${r.unit || ''}</span></div></div>`;
+          }).join('');
+
+          const age = device.lastUpdate ? this.timeAgo(device.lastUpdate) : 'never';
+
+          return `
+            <div class="device-card ${device.device_id === this.selectedDevice ? 'selected' : ''}"
+                 data-device-id="${device.device_id}"
+                 onclick="app.selectDevice('${device.device_id}')">
+              <div class="device-card-header">
+                <div>
+                  <div class="device-name">${device.name || device.device_id}</div>
+                  <div class="device-type">${device.type || 'unknown'}</div>
+                </div>
+                <span class="device-status ${device.status || 'offline'}">${device.status || 'offline'}</span>
+              </div>
+              <div class="device-readings">${readingsHtml || '<div class="reading"><div class="reading-label">No readings</div><div class="reading-value">N/A</div></div>'}</div>
+              <div class="device-footer">
+                <span>ID: ${device.device_id}</span>
+                <span>Updated ${age}</span>
+              </div>
+            </div>`;
+        }).join('');
+      },
+
+      renderDetail(deviceId) {
+        const device = this.devices.get(deviceId);
+        if (!device) return;
+
+        const panel = document.getElementById('detailPanel');
+        panel.classList.add('visible');
+        document.getElementById('detailTitle').textContent = device.name || deviceId;
+
+        const props = document.getElementById('detailProperties');
+        const readings = device.readings || {};
+        props.innerHTML = Object.entries(readings).map(([key, r]) => `
+          <div class="detail-prop">
+            <div class="prop-label">${key.replace(/_/g, ' ')}</div>
+            <div class="prop-value">${this.formatValue(r.value)} <span class="reading-unit">${r.unit || ''}</span></div>
+          </div>
+        `).join('') || '<div class="detail-prop"><div class="prop-label">Status</div><div class="prop-value">' + (device.status || 'unknown') + '</div></div>';
+
+        this.renderChart(deviceId);
+      },
+
+      renderChart(deviceId) {
+        const device = this.devices.get(deviceId);
+        if (!device || !device.readings) return;
+
+        const canvas = document.getElementById('detailChart');
+        const ctx = canvas.getContext('2d');
+        const colors = ['#6c8cff', '#34d399', '#fbbf24', '#a78bfa'];
+
+        if (this.chart) this.chart.destroy();
+
+        const datasets = Object.keys(device.readings).slice(0, 4).map((key, i) => {
+          const seriesKey = `${deviceId}:${key}`;
+          const data = (this.chartData.get(seriesKey) || []).map(p => ({ x: p.x, y: p.y }));
+          return {
+            label: key.replace(/_/g, ' '),
+            data,
+            borderColor: colors[i % colors.length],
+            backgroundColor: colors[i % colors.length] + '20',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: true,
+          };
+        });
+
+        this.chart = new Chart(ctx, {
+          type: 'line',
+          data: { datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 300 },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { color: '#9aa0b4', font: { size: 11 }, boxWidth: 12, padding: 16 }
+              },
+              tooltip: {
+                backgroundColor: '#1a1d27',
+                borderColor: '#3a3f52',
+                borderWidth: 1,
+                titleColor: '#e8eaed',
+                bodyColor: '#9aa0b4',
+                padding: 10,
+              }
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                display: true,
+                grid: { color: '#2e3345' },
+                ticks: {
+                  color: '#6b7185',
+                  font: { size: 10 },
+                  callback: (val) => {
+                    const d = new Date(val);
+                    return d.getMinutes() + ':' + d.getSeconds().toString().padStart(2, '0');
+                  }
+                }
+              },
+              y: {
+                display: true,
+                grid: { color: '#2e3345' },
+                ticks: { color: '#6b7185', font: { size: 10 } }
+              }
+            }
+          }
+        });
+      },
+
+      showToast(type, title, message) {
+        const container = document.getElementById('toastContainer');
+        const icons = { alarm: '⚠️', warning: '⚡', info: 'ℹ️' };
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+          <span class="toast-icon">${icons[type] || icons.info}</span>
+          <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+            <div class="toast-time">${new Date().toLocaleTimeString()}</div>
+          </div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), this.toastTimeout);
+
+        if (container.children.length > 5) container.firstChild.remove();
+      },
+
+      formatValue(val) {
+        if (typeof val === 'number') return val % 1 === 0 ? val : val.toFixed(2);
+        if (typeof val === 'object') return JSON.stringify(val);
+        return String(val);
+      },
+
+      timeAgo(date) {
+        const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+        if (seconds < 5) return 'just now';
+        if (seconds < 60) return seconds + 's ago';
+        if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+        return Math.floor(seconds / 3600) + 'h ago';
+      },
+
+      startSimulation() {
+        const demoDevices = [
+          { device_id: 'tc_001', name: 'Thermocycler A', type: 'thermocycler', status: 'online' },
+          { device_id: 'lh_001', name: 'Liquid Handler', type: 'liquid_handler', status: 'online' },
+          { device_id: 'arm_001', name: 'Robotic Arm', type: 'robotic_arm', status: 'busy' },
+          { device_id: 'cam_001', name: 'Lab Camera', type: 'camera', status: 'online' },
+          { device_id: 'ph_001', name: 'pH Meter', type: 'sensor', status: 'maintenance' },
+        ];
+
+        setTimeout(() => {
+          if (this.devices.size === 0) {
+            demoDevices.forEach(d => this.updateDevice(d));
+            this.showToast('info', 'Demo Mode', 'Showing simulated devices (no server connected)');
+
+            this.updateReading('tc_001', 'block_temperature', 72.3, 'celsius');
+            this.updateReading('tc_001', 'lid_temperature', 105.0, 'celsius');
+            this.updateReading('lh_001', 'tip_count', 96, 'tips');
+            this.updateReading('lh_001', 'volume_dispensed', 0, 'uL');
+            this.updateReading('arm_001', 'position_x', 150.0, 'mm');
+            this.updateReading('arm_001', 'position_y', 75.0, 'mm');
+            this.updateReading('cam_001', 'fps', 30, 'fps');
+            this.updateReading('ph_001', 'ph_value', 7.02, 'pH');
+
+            setInterval(() => this.simulateTick(), 2000);
+          }
+        }, 3000);
+      },
+
+      simulateTick() {
+        const tc = this.devices.get('tc_001');
+        if (tc && tc.readings) {
+          const temp = tc.readings.block_temperature;
+          if (temp) {
+            const newVal = temp.value + (Math.random() - 0.45) * 0.8;
+            this.updateReading('tc_001', 'block_temperature', Math.round(newVal * 10) / 10, 'celsius');
+          }
+        }
+
+        const ph = this.devices.get('ph_001');
+        if (ph && ph.readings) {
+          const phVal = ph.readings.ph_value;
+          if (phVal) {
+            const newPh = phVal.value + (Math.random() - 0.5) * 0.05;
+            this.updateReading('ph_001', 'ph_value', Math.round(newPh * 100) / 100, 'pH');
+          }
+        }
+
+        const arm = this.devices.get('arm_001');
+        if (arm && arm.readings) {
+          const x = arm.readings.position_x;
+          if (x) {
+            const newX = x.value + (Math.random() - 0.5) * 5;
+            this.updateReading('arm_001', 'position_x', Math.round(newX * 10) / 10, 'mm');
+          }
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
