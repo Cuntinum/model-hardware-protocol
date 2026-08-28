@@ -1,7 +1,7 @@
 {
   "name": "@cuntinum/khp",
-  "version": "0.1.0",
-  "description": "Model Hardware Protocol — TypeScript SDK for AI agents controlling physical devices",
+  "version": "0.1.1",
+  "description": "Model Hardware Protocol: TypeScript SDK for AI agents controlling physical devices",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
     "lint": "eslint src/",
     "clean": "rm -rf dist/"
   },
-  "keywords": ["hardware", "iot", "ai", "mcp", "robotics", "lab-automation", "protocol"],
+  "keywords": ["hardware", "iot", "ai", "mcp", "robotics", "lab automation", "protocol", "model hardware protocol"],
   "author": "Cuntinum <dev@cuntinum.com>",
   "license": "Apache-2.0",
   "repository": {
